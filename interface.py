@@ -33,9 +33,9 @@ while True:
                 file = json.load(file)
                 file = sorted(file, key=lambda x: weighted(x['role']))
                 for row in file:
-                    print('-' * 100)  # Разделитель (для читаемости)
+                    print('-' * 100)  # Separator
                     for elem in row:
-                        # Условие для обработки строки без вылетов из-за None type'а
+                        # Condition for processing a string without departures due to None type
                         print(elem, '-', row[elem] if row is not None else None)
         except:
             print('ФАЙЛ НЕ СООТВЕСТВУЕТ ФОРМАТУ/СТРУКТУРЕ JSON ФАЙЛА')
