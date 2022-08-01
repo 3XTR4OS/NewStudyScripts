@@ -11,4 +11,4 @@ def get_number(name, dikt=phone_book):
 
 add_new_user('jerry', 8805345532)
 add_new_user('garry', 5873265283)
-print(get_number('garry'))
+print(get_number('Паша вонючка'))
