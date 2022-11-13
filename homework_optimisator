@@ -1,0 +1,18 @@
+import sys
+
+messages = [x for x in [x.strip() for x in sys.stdin] if x != '']
+homework = ['🔻None', '🔻None', '🔻Доделать практическую кто не сделал', '🔻None']
+
+lessons_temp = [i for i in range(0, len(messages) + 1, 5)]
+lessons_slice = [(lessons_temp[i], lessons_temp[i + 1]) for i in range(len(lessons_temp) - 1)]
+
+periods = [messages[m_slice[0]:m_slice[-1]] for m_slice in lessons_slice]
+for i in range(len(periods)):
+    periods[i].append(homework[i])
+
+for period in periods:
+    print(f'🧿{period[1]} [Пара №{period[0]}]🧿')
+    print(f'⏳Время: {period[3]}⏳')
+    print(f'🚪Кабинет: {period[4]}🚪')
+    print(f'🔻Домашка: \n', period[-1])
+    print()
