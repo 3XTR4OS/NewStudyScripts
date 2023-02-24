@@ -18,9 +18,10 @@ COLORS = {
 }
 
 QUESTIONS = [pygame.image.load(f'Вопросы/{i}') for i in os.listdir('Вопросы')]
+ANSWERS = [pygame.image.load(f'Ответы/{i}') for i in os.listdir('Ответы')]
 
 pygame.font.init()
-FONT = pygame.font.SysFont('comicsansms', 70)
+FONT = pygame.font.SysFont('comicsansms', 65)
 FONT2 = pygame.font.SysFont('comicsansms', 40)
 
 
@@ -38,17 +39,10 @@ class GameMember:
         self.team_score = 0
 
 
-class Teams:
-    def __init__(self, team_amount):
-        self.team_amount = team_amount
-
-    def teams_amount(self):
-        return self.team_amount
-
-
 # -- screen settings start --
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 1024
+# BACKGROUND = pygame.image.load('photo_2023-02-16_19-40-32.jpg')
+SCREEN_WIDTH = 1024
+SCREEN_HEIGHT = 768
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.init()
 # -- screen settings end --
@@ -61,20 +55,22 @@ def choose_teams():
     pygame.init()
     pygame.font.init()
     FONT = pygame.font.SysFont('comicsansms', 50)
+    DEFAULT_IMAGE_SIZE = (SCREEN_WIDTH + 300, SCREEN_HEIGHT)
 
-    size_block = 100
-    margin = 222  # отступ
+    size_block = 50
+    margin = 180  # отступ
 
-    size_window = (1280, 1024)
+    size_window = (1024, 768)
     screen = pygame.display.set_mode(size_window)
     pygame.display.set_caption('Викторина-выбор команд')
+    game_bg = pygame.image.load('game_background.jpg')
 
     field = [[0] * 2 for i in range(3)]
 
     running = True
     while running:
-        # screen.fill(COLORS['GREY'])
-        screen.blit(pygame.image.load('game_background.jpg'), (0, 0))
+        game_bg_img = pygame.transform.scale(game_bg, DEFAULT_IMAGE_SIZE)
+        screen.blit(game_bg_img, (0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -88,10 +84,6 @@ def choose_teams():
 
                     if field[row][col] == 'x':
                         field[row][col] = 0
-
-                        # main_game()
-                        # exit(0)
-
 
                     else:
                         if any([any(i) for i in field]):
@@ -117,12 +109,6 @@ def choose_teams():
 
                             elif row == 2 and col == 1:
                                 how_many_teams = 6
-
-                        # print(sum([len(i) for i in field]))
-                        # print('r-', row)
-                        # print('c-', col)
-                        # main_game()
-                        # exit(0)
 
                 except IndexError:
                     print('IndexError')
@@ -150,7 +136,6 @@ def choose_teams():
                 y = row * size_block + (row + 1) * (margin * 1)
                 # pygame.draw.rect(screen, color, (x, y, size_block, size_block))
                 pygame.draw.circle(screen, color, (x, y), radius=70)
-
                 text = FONT.render(f"{counter}", True, COLORS['BLACK'])
                 counter += 1
                 screen.blit(text, (x - 18, y - 35))
@@ -195,43 +180,90 @@ def switch_question_or_finish(quest_list, current_inx):
     return current_inx
 
 
-def main_main_game(members):
-    pygame.display.set_caption('Викторина --идёт игра--')
+#
+def find_out_true_answer(screen, current_quest_indx, player_now):
+    screen.fill(COLORS['WHITE'])
+    default_image_scale = (SCREEN_WIDTH + 50, SCREEN_HEIGHT // 1.4)
+    answer_image = ANSWERS[current_quest_indx]
 
-    current_team_index = 0
-    current_quest_index = 0
-    question_image = QUESTIONS[current_quest_index]
-    player_now = members[current_team_index]
-
-    running = True
-    game_ending = True
-
-    while running:
-        screen.fill(COLORS['WHITE'])
-        screen.blit(question_image, (0, 0))
-        cursor_on_left_side = False
-        cursor_on_right_side = False
-        img_width, img_height = question_image.get_rect()[2:4]
-
+    answering_cycle = True
+    while answering_cycle:
+        img_width, img_height = answer_image.get_rect()[2:4]
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        if mouse_x < img_width // 2:
+
+        if mouse_x < SCREEN_WIDTH // 2:
             cursor_on_left_side = True
             cursor_on_right_side = False
 
-        elif mouse_x > img_width // 2:
+        elif mouse_x > SCREEN_WIDTH // 2:
             cursor_on_right_side = True
             cursor_on_left_side = False
 
         quest_wrong = FONT.render('Неправильно', True, COLORS['BLACK'])
         quest_true = FONT.render('Правильно', True, COLORS['BLACK'])
-        team_playing_now = FONT2.render(f'Отвечает {player_now.team_name}: счёт {player_now.team_score}', True,
-                                        COLORS['BLACK'])
+
 
         if cursor_on_right_side:
             quest_wrong = FONT.render('Неправильно', True, COLORS['RED'])
 
         if cursor_on_left_side:
             quest_true = FONT.render('Правильно', True, COLORS['GREEN'])
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                answering_cycle = False
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == K_SPACE:
+                    if cursor_on_right_side:
+                        player_now.team_score = wrong_answer(player_now, price=1)
+                        answering_cycle = False
+                    else:
+                        player_now.team_score = true_answer(player_now, price=100)
+                        answering_cycle = False
+
+        question_image = transform.scale(answer_image, default_image_scale)
+
+        screen.blit(question_image, (0, 0))
+        screen.blit(quest_true, (-150 + img_width // 6, img_height // 1.25))
+        screen.blit(quest_wrong, (-150 + img_width // 2, img_height // 1.25))
+
+        pygame.display.flip()
+
+
+def main_main_game(members):
+    pygame.display.set_caption('Викторина --идёт игра--')
+
+    current_team_index = 0
+    current_quest_index = 0
+    question_image = QUESTIONS[current_quest_index]
+    DEFAULT_IMAGE_SCALE = (SCREEN_WIDTH + 50, SCREEN_HEIGHT // 1.4)
+    player_now = members[current_team_index]
+
+    running = True
+    game_ending = True
+    while running:
+
+        screen.fill(COLORS['WHITE'])
+        question_image = transform.scale(question_image, DEFAULT_IMAGE_SCALE)
+        find_out_answer_text = FONT.render(f'Узнать правильный ответ ->', True, COLORS['BLACK'])
+        team_playing_now = FONT2.render(f'Отвечает {player_now.team_name}: счёт {player_now.team_score}', True,
+                                        COLORS['BLACK'])
+        screen.blit(team_playing_now, (SCREEN_WIDTH // 6, SCREEN_HEIGHT - 75))
+
+        screen.blit(question_image, (0, 0))
+
+        cursor_under_image = False
+        img_width, img_height = question_image.get_rect()[2:4]
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        if mouse_y > SCREEN_HEIGHT // 2 + 50:
+            cursor_under_image = True
+        else:
+            cursor_under_image = False
+
+        if cursor_under_image:
+            screen.blit(find_out_answer_text, (100, SCREEN_HEIGHT - 200))
 
         # E V E N T S
         for event in pygame.event.get():
@@ -240,13 +272,7 @@ def main_main_game(members):
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_SPACE:
-                    # question_image = random.choice(QUESTIONS)
-
-                    if cursor_on_right_side:
-                        player_now.team_score = wrong_answer(player_now, price=1)
-
-                    else:
-                        player_now.team_score = true_answer(player_now, price=100)
+                    find_out_true_answer(screen, current_quest_index, player_now)
 
                     current_team_index = switch_team(members, current_team_index)
                     current_quest_index = switch_question_or_finish(QUESTIONS, current_quest_index)
@@ -257,13 +283,12 @@ def main_main_game(members):
                         running = False
                     else:
                         question_image = QUESTIONS[current_quest_index]
-
         # E V E N T S
 
         # ОТРИСОВКА ВСЕГО, ЧТО НАКОДИЛ
-        screen.blit(quest_true, (-100 + img_width // 5, img_height))
-        screen.blit(quest_wrong, (100 + img_width // 2, img_height))
-        screen.blit(team_playing_now, (img_width // 8, img_height + 150))
+        # screen.blit(quest_true, ((-50 + img_width // 6) - 50, img_height - 50))
+        # screen.blit(quest_wrong, ((50 + img_width // 2) - 50, img_height - 50))
+        # screen.blit(team_playing_now, (img_width // 4, img_height + 100))
 
         pygame.display.flip()
 
@@ -278,11 +303,11 @@ def main_main_game(members):
             if event.type == pygame.QUIT:
                 game_ending = False
 
-        margin = 100
+        margin = 75
         for member in sorted(member_list, key=lambda x: x.team_score)[::-1]:
             text = FONT.render(f"{member.team_name}: счёт {member.team_score}", True, COLORS['WHITE'])
-            screen.blit(text, (100, (margin + 100)))
-            margin += 100
+            screen.blit(text, (100, (margin + 50)))
+            margin += 75
             # for i in
 
         pygame.display.flip()
